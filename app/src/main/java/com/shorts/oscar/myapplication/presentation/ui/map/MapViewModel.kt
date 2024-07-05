@@ -1,4 +1,4 @@
-package com.shorts.oscar.myapplication.ui.map
+package com.shorts.oscar.myapplication.presentation.ui.map
 
 import androidx.lifecycle.ViewModel
 

@@ -1,4 +1,4 @@
-package com.shorts.oscar.myapplication.ui.map
+package com.shorts.oscar.myapplication.presentation.ui.map
 
 import android.Manifest
 import android.content.BroadcastReceiver
@@ -33,6 +33,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.shorts.oscar.myapplication.databinding.FragmentMapBinding
+import com.shorts.oscar.myapplication.presentation.utils.PermissionHelper
 import com.shorts.oscar.myapplication.service.LocationService
 
 
@@ -44,7 +45,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
     private val mapViewModel: MapViewModel by viewModels()
     private var currentMarker: Marker? = null
-    private val LOCATION_PERMISSION_REQUEST_CODE = 1001
+    private lateinit var permissionHelper: PermissionHelper
 
     private val locationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -59,70 +60,33 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+        savedInstanceState: Bundle?): View {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
-        if (checkLocationPermission()) {
-        } else {
-            requestLocationPermission()
-        }
-        binding.btnMyLocation.setOnClickListener {
-            if (checkLocationPermission()) {
-                // Разрешение уже получено, можно получить координаты
-                fetchLocation()
-            } else {
-                // Разрешение не получено, запрашиваем его у пользователя
-                requestLocationPermission()
-            }
-            googleMap.let {
-                it.isMyLocationEnabled = true
-            }
-        }
         return root
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        permissionHelper = PermissionHelper(requireContext())
+        fetchLocation()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.btnMyLocation.setOnClickListener {
+            fetchLocation()
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
+        // Убираем стандартные кнопки
         googleMap.uiSettings.isZoomControlsEnabled = false
         googleMap.uiSettings.isMapToolbarEnabled = false
-        googleMap.uiSettings.isMyLocationButtonEnabled = false // Убираем стандартную кнопку
-    }
-
-    private fun checkLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestLocationPermission() {
-        requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            LOCATION_PERMISSION_REQUEST_CODE
-        )
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Разрешение получено, получаем координаты
-                    //fetchLocation()
-                } else {
-                    // Разрешение не получено
-                    Toast.makeText(requireContext(), "Разрешение на местоположение отклонено", Toast.LENGTH_SHORT).show()
-                }
-                return
-            }
-        }
+        googleMap.uiSettings.isMyLocationButtonEnabled = false
     }
 
     private fun fetchLocation() {
@@ -137,12 +101,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         ) {
             return
         }
+        googleMap.isMyLocationEnabled = true
         val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
         if (location != null) {
             val latitude = location.latitude
             val longitude = location.longitude
-            // Здесь можно использовать полученные координаты (latitude и longitude)
-            // Например, обновить маркер на карте или выполнить другие действия
+            // Обновить маркер на карте
             val latLng = LatLng(location.latitude, location.longitude)
             updateMarker(latLng)
             Toast.makeText(requireContext(), "Latitude: $latitude, Longitude: $longitude", Toast.LENGTH_SHORT).show()
@@ -151,6 +115,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    //Обновить маркер на карте
     private fun updateMarker(latLng: LatLng) {
         googleMap.apply {
             currentMarker?.remove()

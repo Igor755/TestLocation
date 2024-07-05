@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.shorts.oscar.myapplication.ui.map.MapFragment"
+        android:name="com.shorts.oscar.myapplication.presentation.ui.map.MapFragment"
         android:label="Map"
         tools:layout="@layout/fragment_map" />
 
     <fragment
         android:id="@+id/nav_gallery"
-        android:name="com.shorts.oscar.myapplication.ui.list.ListFragment"
+        android:name="com.shorts.oscar.myapplication.presentation.ui.list.ListFragment"
         android:label="List"
         tools:layout="@layout/fragment_list" />
 
     <fragment
         android:id="@+id/nav_slideshow"
-        android:name="com.shorts.oscar.myapplication.ui.info.InfoFragment"
+        android:name="com.shorts.oscar.myapplication.presentation.ui.info.InfoFragment"
         android:label="Info"
         tools:layout="@layout/fragment_info" />
 </navigation>

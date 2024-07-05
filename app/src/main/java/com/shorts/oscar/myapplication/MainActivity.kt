@@ -1,8 +1,12 @@
 package com.shorts.oscar.myapplication
 
+import android.Manifest
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.google.android.material.navigation.NavigationView
@@ -13,16 +17,18 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.shorts.oscar.myapplication.databinding.ActivityMainBinding
+import com.shorts.oscar.myapplication.presentation.utils.PermissionHelper
 import com.shorts.oscar.myapplication.service.LocationService
-import com.shorts.oscar.myapplication.utils.PermissionManager
 
 //Класс контейнер для фрагментов, содержащий боковое меню и меню тулбара
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var permissionManager: PermissionManager
+    private lateinit var permissionHelper: PermissionHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +38,6 @@ class MainActivity : AppCompatActivity() {
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
@@ -44,22 +48,18 @@ class MainActivity : AppCompatActivity() {
         navView.apply {
             itemIconTintList = null
         }
-        permissionManager = PermissionManager(this)
-
-        if (!permissionManager.checkPermissions(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        ) {
-            permissionManager.requestPermissions(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        } else {
-            // Разрешения уже есть, можно выполнять действия, требующие разрешений
-            // Например, инициализировать карту или запустить сервис
-            startLocationService()
-        }
+        permissionHelper = PermissionHelper(this)
+        permissionHelper.initPermissionLauncher(this,
+            onGranted = {
+                // Код, который нужно выполнить, если разрешения предоставлены
+                startLocationService()
+            },
+            onDenied = {
+                // Код, который нужно выполнить, если разрешения отклонены
+            }
+        )
+        // Запрос разрешений
+        permissionHelper.requestPermissions()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    //Функция запускает сервис
     private fun startLocationService() {
         val intent = Intent(this, LocationService::class.java)
         startForegroundService(intent)
@@ -81,38 +82,70 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_start_service -> {
-                startLocationService()
+                checkPermission("start")
                 true
             }
             R.id.action_stop_service -> {
-                stopLocationService()
+                checkPermission("stop")
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    //Функция проверки на разрешения
+    private fun checkPermission(isStartOrStop : String){
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionHelper.showSettingsDialog()
+        } else{
+            if (isStartOrStop == "start"){
+                if (!checkService()){
+                    startLocationService()
+                    return
+                }
+            } else {
+                if (checkService()){
+                    stopLocationService()
+                }
+            }
+        }
+    }
+
+    //Функция проверки запущен сервис или нет
+    private fun checkService() : Boolean{
+        val isServiceRunning = isLocationServiceRunning(LocationService::class.java)
+        if (isServiceRunning) {
+            // Служба запущена
+            Log.d("YourActivity", "LocationService is running")
+            return true
+        } else {
+            // Служба не запущена
+            Log.d("YourActivity", "LocationService is not running")
+            return false
+        }
+    }
+
+    //Функция остановки сервиса
     private fun stopLocationService() {
         val intent = Intent(this, LocationService::class.java)
         stopService(intent)
     }
 
-    // Обработка результатов запроса разрешений
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PermissionManager.PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                // Разрешения получены, можно выполнять действия, требующие разрешений
-                // Например, инициализировать карту или запустить сервис
-                startLocationService()
-            } else {
-                // Отказано в разрешениях, показываем диалог с предложением перейти в настройки
-                permissionManager.showGoToSettingsDialog()
+    //Проверка запущен ли сервис
+    private fun isLocationServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
             }
         }
+        return false
     }
 }

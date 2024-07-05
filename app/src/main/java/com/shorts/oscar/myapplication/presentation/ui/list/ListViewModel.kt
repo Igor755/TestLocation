@@ -1,4 +1,4 @@
-package com.shorts.oscar.myapplication.ui.list
+package com.shorts.oscar.myapplication.presentation.ui.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

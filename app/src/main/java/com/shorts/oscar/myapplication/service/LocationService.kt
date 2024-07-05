@@ -4,12 +4,12 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import android.os.IBinder
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -19,6 +19,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.shorts.oscar.myapplication.MainActivity
 import com.shorts.oscar.myapplication.R
 
 //Этот класс представляет собой службу (Service) в Android, которая отслеживает местоположение пользователя с помощью FusedLocationProviderClient.
@@ -44,7 +45,6 @@ class LocationService : Service() {
         const val EXTRA_SATELLITES = "satellites"
     }
 
-    // Метод вызывается при создании службы
     override fun onCreate() {
         super.onCreate()
 
@@ -54,7 +54,6 @@ class LocationService : Service() {
         // Инициализация обратного вызова для обработки результатов местоположения
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
-                // При получении нового местоположения вызываем обработчик
                 locationResult.lastLocation?.let { location ->
                     handleNewLocation(location)
                 }
@@ -66,6 +65,13 @@ class LocationService : Service() {
 
         // Начало получения обновлений местоположения
         startLocationUpdates()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        // Остановка получения обновлений местоположения
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     // Обработка нового местоположения
@@ -81,6 +87,7 @@ class LocationService : Service() {
         lastLocation?.let {
             distance = it.distanceTo(location)
         }
+
         // Обновление последнего известного местоположения
         lastLocation = location
 
@@ -104,11 +111,20 @@ class LocationService : Service() {
         val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
         notificationManager.createNotificationChannel(channel)
 
+
+        // Создаем PendingIntent для открытия активности приложения
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         // Создание уведомления для службы
         val notification: Notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Location Service")
             .setContentText("Tracking your location")
             .setSmallIcon(R.drawable.ic_notification)
+            .setContentIntent(pendingIntent) // Устанавливаем PendingIntent
             .build()
 
         // Запуск службы в режиме foreground с уведомлением
@@ -140,15 +156,7 @@ class LocationService : Service() {
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
-    // Метод onBind возвращает null, так как служба не связана с другими компонентами
     override fun onBind(intent: Intent?): IBinder? {
         return null
-    }
-
-    // Уничтожение службы
-    override fun onDestroy() {
-        super.onDestroy()
-        // Остановка получения обновлений местоположения
-        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }

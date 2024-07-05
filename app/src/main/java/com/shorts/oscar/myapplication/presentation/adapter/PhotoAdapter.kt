@@ -1,4 +1,4 @@
-package com.shorts.oscar.myapplication.ui.adapter
+package com.shorts.oscar.myapplication.presentation.adapter
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -49,7 +49,6 @@ class PhotoAdapter(var photos: List<Photo>) : RecyclerView.Adapter<PhotoAdapter.
         fun bind(photo: Photo) {
             textViewId.text = photo.id.toString() // Установка ID в textViewId
             textViewTitle.text = photo.title // Установка заголовка в textViewTitle
-
             // Настройка опций загрузки изображения с помощью библиотеки Glide
             val requestOptions = RequestOptions()
             requestOptions.placeholder(R.drawable.progress_animation) // Установка placeholder-а

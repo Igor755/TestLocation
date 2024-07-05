@@ -1,15 +1,19 @@
-package com.shorts.oscar.myapplication.ui.info
+package com.shorts.oscar.myapplication.presentation.ui.info
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -52,6 +56,18 @@ class InfoFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun updateUI(latitude: Double, longitude: Double, speed: Float, distance: Float, satellites: Int) {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            binding.pbLoading.visibility = View.GONE
+            Toast.makeText(requireContext(), "Нет разрешений для корректной работы приложения", Toast.LENGTH_SHORT).show()
+            return
+        }
         binding.pbLoading.visibility = View.GONE
         binding.tvLatitude.text = "Широта: $latitude"
         binding.tvLongitude.text = "Долгота: $longitude"

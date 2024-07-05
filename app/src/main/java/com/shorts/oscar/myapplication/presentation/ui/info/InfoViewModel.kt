@@ -1,4 +1,4 @@
-package com.shorts.oscar.myapplication.ui.info
+package com.shorts.oscar.myapplication.presentation.ui.info
 
 import androidx.lifecycle.ViewModel
 
