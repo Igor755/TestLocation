@@ -1,4 +1,4 @@
-package com.shorts.oscar.myapplication.model
+package com.shorts.oscar.myapplication.data
 
 //Класс Photo представляет собой простой data class
 //который используется для хранения информации о фотографиях:

@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shorts.oscar.myapplication.api.PhotoService
-import com.shorts.oscar.myapplication.model.Photo
+import com.shorts.oscar.myapplication.data.Photo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

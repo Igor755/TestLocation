@@ -6,13 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.shorts.oscar.myapplication.R
-import com.shorts.oscar.myapplication.model.Photo
+import com.shorts.oscar.myapplication.data.Photo
 
 //Это основной адаптер для RecyclerView, который управляет отображением элементов списка.
 //В конструкторе принимается список объектов Photo, который будет отображаться в RecyclerView.
@@ -55,7 +54,6 @@ class PhotoAdapter(var photos: List<Photo>) : RecyclerView.Adapter<PhotoAdapter.
             Glide.with(itemView) // Инициализация Glide для текущего контекста itemView
                 .setDefaultRequestOptions(requestOptions) // Установка опций запроса
                 .load(photo.thumbnailUrl) // Загрузка изображения по URL-у
-                .override(400, 400) // Установка размера изображения
                 .diskCacheStrategy(DiskCacheStrategy.ALL) // Стратегия кэширования
                 .into(imageView) // Установка изображения в imageView
         }

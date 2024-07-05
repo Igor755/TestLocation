@@ -1,6 +1,6 @@
 package com.shorts.oscar.myapplication.api
 
-import com.shorts.oscar.myapplication.model.Photo
+import com.shorts.oscar.myapplication.data.Photo
 import retrofit2.http.GET
 
 /*Интерфейс PhotoService для работы с удалённым API,

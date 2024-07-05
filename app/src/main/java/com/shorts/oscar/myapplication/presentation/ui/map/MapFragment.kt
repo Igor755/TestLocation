@@ -71,7 +71,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         permissionHelper = PermissionHelper(requireContext())
-        fetchLocation()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -87,6 +86,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.uiSettings.isZoomControlsEnabled = false
         googleMap.uiSettings.isMapToolbarEnabled = false
         googleMap.uiSettings.isMyLocationButtonEnabled = false
+        fetchLocation()
     }
 
     private fun fetchLocation() {

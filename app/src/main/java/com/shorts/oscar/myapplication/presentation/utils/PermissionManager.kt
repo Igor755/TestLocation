@@ -23,6 +23,7 @@ class PermissionHelper(private val context: Context) {
         android.Manifest.permission.POST_NOTIFICATIONS
     )
 
+    //Инициализация разрешений для фрагментов
     fun initPermissionLauncher(
         fragment: Fragment,
         onGranted: () -> Unit,
@@ -37,6 +38,7 @@ class PermissionHelper(private val context: Context) {
         }
     }
 
+    //Инициализация разрешений для активити
     fun initPermissionLauncher(
         activity: androidx.appcompat.app.AppCompatActivity,
         onGranted: () -> Unit,
@@ -65,12 +67,13 @@ class PermissionHelper(private val context: Context) {
         }
     }
 
-    fun arePermissionsGranted(): Boolean {
+    private fun arePermissionsGranted(): Boolean {
         return requiredPermissions.all { permission ->
             ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         }
     }
 
+    //Запрос на разрешения
     fun requestPermissions() {
         if (::requestPermissionLauncher.isInitialized) {
             if (arePermissionsGranted()) {
@@ -85,6 +88,7 @@ class PermissionHelper(private val context: Context) {
         }
     }
 
+    //Вызов диалога с переходом в настройки
     fun showSettingsDialog() {
         AlertDialog.Builder(context)
             .setTitle("Требуются разрешения")
