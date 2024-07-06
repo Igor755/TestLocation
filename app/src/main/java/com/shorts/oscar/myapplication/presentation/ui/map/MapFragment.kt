@@ -45,7 +45,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
     private val mapViewModel: MapViewModel by viewModels()
     private var currentMarker: Marker? = null
-    private lateinit var permissionHelper: PermissionHelper
 
     private val locationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -66,11 +65,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
         return root
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        permissionHelper = PermissionHelper(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,7 +120,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-        binding.mapView.onResume()
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(
             locationReceiver, IntentFilter(LocationService.LOCATION_UPDATE)
         )
@@ -134,22 +127,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onPause() {
         super.onPause()
-        binding.mapView.onPause()
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(locationReceiver)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        binding.mapView.onDestroy()
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        binding.mapView.onLowMemory()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
